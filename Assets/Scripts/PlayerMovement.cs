@@ -4,81 +4,139 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-	[SerializeField]
-	float moveSpeed = 0.25f;
-	[SerializeField]
-	float rayLength = 1.4f;
-	[SerializeField]
-	float rayOffsetX = 0.5f;
-	[SerializeField]
-	float rayOffsetY = 0.5f;
-	[SerializeField]
-	float rayOffsetZ = 0.5f;
+    [SerializeField]
+    float moveSpeed = 0.25f;
+    [SerializeField]
+    float rayLength = 1.4f;
+    [SerializeField]
+    float rayOffsetX = 0.5f;
+    [SerializeField]
+    float rayOffsetY = 0.5f;
+    [SerializeField]
+    float rayOffsetZ = 0.5f;
 
-	Vector3 targetPosition;
-	Vector3 startPosition;
-	bool moving;
+    Vector3 targetPosition;
+    Vector3 startPosition;
+    bool moving;
 
-	void Update() {
-		if (moving) {
-			if (Vector3.Distance(startPosition, transform.position) > 1f) {
-				transform.position = targetPosition;
-				moving = false;
-				return;
-			}
+    Vector3 xOffset;
+    Vector3 yOffset;
+    Vector3 zOffset;
+    Vector3 zAxisOriginA;
+    Vector3 zAxisOriginB;
+    Vector3 xAxisOriginA;
+    Vector3 xAxisOriginB;
 
-			transform.position += (targetPosition - startPosition) * moveSpeed * Time.deltaTime;
-			return;
-		}
+    void Update() {
+        if (moving) {
+            if (Vector3.Distance(startPosition, transform.position) > 1f) {
+                transform.position = targetPosition;
+                moving = false;
+                return;
+            }
 
-		Debug.DrawLine(transform.position + Vector3.up * rayOffsetY + Vector3.right * rayOffsetX, transform.position + Vector3.up * rayOffsetY + Vector3.right * rayOffsetX + Vector3.forward * rayLength, Color.red, Time.deltaTime);
-		Debug.DrawLine(transform.position + Vector3.up * rayOffsetY - Vector3.right * rayOffsetX, transform.position + Vector3.up * rayOffsetY - Vector3.right * rayOffsetX + Vector3.forward * rayLength, Color.red, Time.deltaTime);
+            transform.position += (targetPosition - startPosition) * moveSpeed * Time.deltaTime;
+            return;
+        }
 
-		Debug.DrawLine(transform.position + Vector3.up * rayOffsetY + Vector3.right * rayOffsetX, transform.position + Vector3.up * rayOffsetY + Vector3.right * rayOffsetX + Vector3.back * rayLength, Color.red, Time.deltaTime);
-		Debug.DrawLine(transform.position + Vector3.up * rayOffsetY - Vector3.right * rayOffsetX, transform.position + Vector3.up * rayOffsetY - Vector3.right * rayOffsetX + Vector3.back * rayLength, Color.red, Time.deltaTime);
+        // Set the ray positions every frame
 
-		Debug.DrawLine(transform.position + Vector3.up * rayOffsetY + Vector3.forward * rayOffsetZ, transform.position + Vector3.up * rayOffsetY + Vector3.forward * rayOffsetZ + Vector3.left * rayLength, Color.red, Time.deltaTime);
-		Debug.DrawLine(transform.position + Vector3.up * rayOffsetY - Vector3.forward * rayOffsetZ, transform.position + Vector3.up * rayOffsetY - Vector3.forward * rayOffsetZ + Vector3.left * rayLength, Color.red, Time.deltaTime);
+        yOffset = transform.position + Vector3.up * rayOffsetY;
+        zOffset = Vector3.forward * rayOffsetZ;
+        xOffset = Vector3.right * rayOffsetX;
 
-		Debug.DrawLine(transform.position + Vector3.up * rayOffsetY + Vector3.forward * rayOffsetZ, transform.position + Vector3.up * rayOffsetY + Vector3.forward * rayOffsetZ + Vector3.right * rayLength, Color.red, Time.deltaTime);
-		Debug.DrawLine(transform.position + Vector3.up * rayOffsetY - Vector3.forward * rayOffsetZ, transform.position + Vector3.up * rayOffsetY - Vector3.forward * rayOffsetZ + Vector3.right * rayLength, Color.red, Time.deltaTime);
+        zAxisOriginA = yOffset + xOffset;
+        zAxisOriginB = yOffset - xOffset;
 
-		if (Input.GetKeyDown(KeyCode.W)) {
-			if (CanMove(Vector3.forward)) {
-				targetPosition = transform.position + Vector3.forward;
-				startPosition = transform.position;
-				moving = true;
-			}
-		} else if (Input.GetKeyDown(KeyCode.S)) {
-			if (CanMove(Vector3.back)) {
-				targetPosition = transform.position + Vector3.back;
-				startPosition = transform.position;
-				moving = true;
-			}
-		} else if (Input.GetKeyDown(KeyCode.A)) {
-			if (CanMove(Vector3.left)) {
-				targetPosition = transform.position + Vector3.left;
-				startPosition = transform.position;
-				moving = true;
-			}
-		} else if (Input.GetKeyDown(KeyCode.D)) {
-			if (CanMove(Vector3.right)) {
-				targetPosition = transform.position + Vector3.right;
-				startPosition = transform.position;
-				moving = true;
-			}
-		}
-	}
+        xAxisOriginA = yOffset + zOffset;
+        xAxisOriginB = yOffset - zOffset;
 
-	bool CanMove(Vector3 direction) {
-		if (Vector3.Equals(Vector3.forward, direction) || Vector3.Equals(Vector3.back, direction)) {
-			if (Physics.Raycast(transform.position + Vector3.up * rayOffsetY + Vector3.right * rayOffsetX, direction, rayLength)) return false;
-			if (Physics.Raycast(transform.position + Vector3.up * rayOffsetY - Vector3.right * rayOffsetX, direction, rayLength)) return false;
-		}
-		else if (Vector3.Equals(Vector3.left, direction) || Vector3.Equals(Vector3.right, direction)) {
-			if (Physics.Raycast(transform.position + Vector3.up * rayOffsetY + Vector3.forward * rayOffsetZ, direction, rayLength)) return false;
-			if (Physics.Raycast(transform.position + Vector3.up * rayOffsetY - Vector3.forward * rayOffsetZ, direction, rayLength)) return false;
-		}
-		return true;
-	}
+        // Draw Debug Rays
+        
+        Debug.DrawLine(
+                zAxisOriginA,
+                zAxisOriginA + Vector3.forward * rayLength,
+                Color.red,
+                Time.deltaTime);
+        Debug.DrawLine(
+                zAxisOriginB,
+                zAxisOriginB + Vector3.forward * rayLength,
+                Color.red,
+                Time.deltaTime);
+
+        Debug.DrawLine(
+                zAxisOriginA,
+                zAxisOriginA + Vector3.back * rayLength,
+                Color.red,
+                Time.deltaTime);
+        Debug.DrawLine(
+                zAxisOriginB,
+                zAxisOriginB + Vector3.back * rayLength,
+                Color.red,
+                Time.deltaTime);
+
+        Debug.DrawLine(
+                xAxisOriginA,
+                xAxisOriginA + Vector3.left * rayLength,
+                Color.red,
+                Time.deltaTime);
+        Debug.DrawLine(
+                xAxisOriginB,
+                xAxisOriginB + Vector3.left * rayLength,
+                Color.red,
+                Time.deltaTime);
+
+        Debug.DrawLine(
+                xAxisOriginA,
+                xAxisOriginA + Vector3.right * rayLength,
+                Color.red,
+                Time.deltaTime);
+        Debug.DrawLine(
+                xAxisOriginB,
+                xAxisOriginB + Vector3.right * rayLength,
+                Color.red,
+                Time.deltaTime);
+
+        // Handle player input
+
+        if (Input.GetKeyDown(KeyCode.W)) {
+            if (CanMove(Vector3.forward)) {
+                targetPosition = transform.position + Vector3.forward;
+                startPosition = transform.position;
+                moving = true;
+            }
+        } else if (Input.GetKeyDown(KeyCode.S)) {
+            if (CanMove(Vector3.back)) {
+                targetPosition = transform.position + Vector3.back;
+                startPosition = transform.position;
+                moving = true;
+            }
+        } else if (Input.GetKeyDown(KeyCode.A)) {
+            if (CanMove(Vector3.left)) {
+                targetPosition = transform.position + Vector3.left;
+                startPosition = transform.position;
+                moving = true;
+            }
+        } else if (Input.GetKeyDown(KeyCode.D)) {
+            if (CanMove(Vector3.right)) {
+                targetPosition = transform.position + Vector3.right;
+                startPosition = transform.position;
+                moving = true;
+            }
+        }
+    }
+
+    // Check if the player can move
+
+    bool CanMove(Vector3 direction) {
+        if (direction.z != 0) {
+            if (Physics.Raycast(zAxisOriginA, direction, rayLength)) return false;
+            if (Physics.Raycast(zAxisOriginB, direction, rayLength)) return false;
+        }
+        else if (direction.x != 0) {
+            if (Physics.Raycast(xAxisOriginA, direction, rayLength)) return false;
+            if (Physics.Raycast(xAxisOriginB, direction, rayLength)) return false;
+        }
+        return true;
+    }
 }
