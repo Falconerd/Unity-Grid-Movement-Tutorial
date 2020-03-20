@@ -5,16 +5,20 @@ using UnityEngine;
 public class CameraFollow : MonoBehaviour
 {
     [SerializeField]
-    Transform target;
+    Transform target = null;
 
     [SerializeField]
-    float buffer = 0.1f;
+    float buffer = 0.05f;
+
+    [SerializeField]
+    float outerBuffer = 1.5f;
 
     [SerializeField]
     float speed = 2.0f;
 
     Vector3 offset;
     float offsetDistance;
+    bool moving;
 
     void Start() {
         offset = target.position + transform.position;
@@ -27,10 +31,24 @@ public class CameraFollow : MonoBehaviour
         float distance = heading.magnitude;
         Vector3 direction = heading / distance;
 
-        if (distance > buffer)
-            transform.position += direction * Time.deltaTime * speed;
-        else
-            transform.position = targetPosition;
+        if (distance > outerBuffer)
+            moving = true;
+
+        if (moving) {
+            if (distance > buffer) {
+                transform.position += direction * Time.deltaTime * speed;
+            } else {
+                transform.position = targetPosition;
+                moving = false;
+            }
+        }
+    }
+
+    void OnDrawGizmos() {
+        Gizmos.color = Color.white;
+        Gizmos.DrawWireSphere(target.position + offset, buffer);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(target.position + offset, outerBuffer);
     }
 }
 
