@@ -8,7 +8,7 @@ public class CameraFollow : MonoBehaviour
     Transform target = null;
 
     [SerializeField]
-    float buffer = 0.05f;
+    float innerBuffer = 0.05f;
 
     [SerializeField]
     float outerBuffer = 1.5f;
@@ -17,12 +17,10 @@ public class CameraFollow : MonoBehaviour
     float speed = 2.0f;
 
     Vector3 offset;
-    float offsetDistance;
     bool moving;
 
     void Start() {
         offset = target.position + transform.position;
-        offsetDistance = Vector3.Distance(target.position, transform.position);
     }
 
     void Update() {
@@ -35,7 +33,7 @@ public class CameraFollow : MonoBehaviour
             moving = true;
 
         if (moving) {
-            if (distance > buffer) {
+            if (distance > innerBuffer) {
                 transform.position += direction * Time.deltaTime * speed;
             } else {
                 transform.position = targetPosition;
@@ -45,10 +43,12 @@ public class CameraFollow : MonoBehaviour
     }
 
     void OnDrawGizmos() {
-        Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(target.position + offset, buffer);
         Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(target.position + offset, innerBuffer);
         Gizmos.DrawWireSphere(target.position + offset, outerBuffer);
+
+        Gizmos.color = Color.white;
+        Gizmos.DrawWireSphere(transform.position, 0.05f);
     }
 }
 
