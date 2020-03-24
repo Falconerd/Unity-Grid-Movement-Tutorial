@@ -255,6 +255,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 908395525}
+  innerBuffer: 0.05
+  outerBuffer: 1.5
+  speed: 1
 --- !u!20 &282840813
 Camera:
   m_ObjectHideFlags: 0
