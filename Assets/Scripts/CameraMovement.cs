@@ -30,7 +30,7 @@ public class CameraMovement : MonoBehaviour
 
 		if (moving) {
 			if (distance > innerBuffer)
-				transform.position += direction * Time.deltaTime * speed;
+				transform.position += direction * Time.deltaTime * speed * Mathf.Max(distance, 1f);
 			else {
 				transform.position = cameraTargetPosition;
 				moving = false;
@@ -44,7 +44,7 @@ public class CameraMovement : MonoBehaviour
         Gizmos.DrawWireSphere(target.position + offset, outerBuffer);
 
         Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(transform.position, 0.05f);
+        Gizmos.DrawWireSphere(transform.position, innerBufer);
     }
 }
 
