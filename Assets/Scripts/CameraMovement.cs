@@ -44,7 +44,7 @@ public class CameraMovement : MonoBehaviour
         Gizmos.DrawWireSphere(target.position + offset, outerBuffer);
 
         Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(transform.position, innerBufer);
+        Gizmos.DrawWireSphere(transform.position, innerBuffer);
     }
 }
 
