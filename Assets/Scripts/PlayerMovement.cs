@@ -27,10 +27,19 @@ public class PlayerMovement : MonoBehaviour
     Vector3 xAxisOriginA;
     Vector3 xAxisOriginB;
 
+    [SerializeField]
+    Transform cameraRotator = null;
+
     void Update() {
         if (moving) {
             if (Vector3.Distance(startPosition, transform.position) > 1f) {
-                transform.position = targetPosition;
+
+                float x = Mathf.Round(targetPosition.x);
+                float y = Mathf.Round(targetPosition.y);
+                float z = Mathf.Round(targetPosition.z);
+
+                transform.position = new Vector3(x, y, z);
+
                 moving = false;
                 return;
             }
@@ -98,28 +107,27 @@ public class PlayerMovement : MonoBehaviour
                 Time.deltaTime);
 
         // Handle player input
-
         if (Input.GetKeyDown(KeyCode.W)) {
             if (CanMove(Vector3.forward)) {
-                targetPosition = transform.position + Vector3.forward;
+                targetPosition = transform.position + cameraRotator.transform.forward;
                 startPosition = transform.position;
                 moving = true;
             }
         } else if (Input.GetKeyDown(KeyCode.S)) {
             if (CanMove(Vector3.back)) {
-                targetPosition = transform.position + Vector3.back;
+                targetPosition = transform.position - cameraRotator.transform.forward;
                 startPosition = transform.position;
                 moving = true;
             }
         } else if (Input.GetKeyDown(KeyCode.A)) {
             if (CanMove(Vector3.left)) {
-                targetPosition = transform.position + Vector3.left;
+                targetPosition = transform.position - cameraRotator.transform.right;
                 startPosition = transform.position;
                 moving = true;
             }
         } else if (Input.GetKeyDown(KeyCode.D)) {
             if (CanMove(Vector3.right)) {
-                targetPosition = transform.position + Vector3.right;
+                targetPosition = transform.position + cameraRotator.transform.right;
                 startPosition = transform.position;
                 moving = true;
             }
