@@ -46,6 +46,17 @@ public class PlayerMovement : MonoBehaviour
 
             transform.position += (targetPosition - startPosition) * moveSpeed * Time.deltaTime;
             return;
+        } else {
+            // After moving, we can check if we should go down a level
+            if (!Physics.Raycast(transform.position - Vector3.down * 0.1f, Vector3.down, 1f)) {
+                transform.position += Vector3.down;
+
+                Debug.DrawLine(
+                        transform.position - Vector3.down * 0.1f,
+                        transform.position - Vector3.down * 0.1f + Vector3.down * 1f,
+                        Color.yellow,
+                        Time.deltaTime);
+            }
         }
 
         // Set the ray positions every frame
@@ -133,6 +144,9 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
+
+    bool falling;
+    float lastElevation;
 
     // Check if the player can move
 
