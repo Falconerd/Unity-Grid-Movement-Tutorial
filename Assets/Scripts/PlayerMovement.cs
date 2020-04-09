@@ -30,10 +30,38 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField]
     Transform cameraRotator = null;
 
-    void Update() {
-        if (moving) {
-            if (Vector3.Distance(startPosition, transform.position) > 1f) {
+    [SerializeField]
+    LayerMask walkableMask = 0;
 
+    [SerializeField]
+    LayerMask collidableMask = 0;
+
+    [SerializeField]
+    float maxFallCastDistance = 100f;
+    [SerializeField]
+    float fallSpeed = 30f;
+    bool falling;
+    float targetFallHeight;
+
+    void Update() {
+
+        if (falling) {
+            if (transform.position.y <= targetFallHeight) {
+                float x = Mathf.Round(transform.position.x);
+                float y = Mathf.Round(targetFallHeight);
+                float z = Mathf.Round(transform.position.z);
+
+                transform.position = new Vector3(x, y, z);
+
+                falling = false;
+
+                return;
+            }
+
+            transform.position += Vector3.down * fallSpeed * Time.deltaTime;
+            return;
+        } else if (moving) {
+            if (Vector3.Distance(startPosition, transform.position) > 1f) {
                 float x = Mathf.Round(targetPosition.x);
                 float y = Mathf.Round(targetPosition.y);
                 float z = Mathf.Round(targetPosition.z);
@@ -41,21 +69,33 @@ public class PlayerMovement : MonoBehaviour
                 transform.position = new Vector3(x, y, z);
 
                 moving = false;
+
                 return;
             }
 
             transform.position += (targetPosition - startPosition) * moveSpeed * Time.deltaTime;
             return;
         } else {
-            // After moving, we can check if we should go down a level
-            if (!Physics.Raycast(transform.position - Vector3.down * 0.1f, Vector3.down, 1f)) {
-                transform.position += Vector3.down;
+            RaycastHit[] hits = Physics.RaycastAll(
+                    transform.position + Vector3.up * 0.5f,
+                    Vector3.down,
+                    maxFallCastDistance,
+                    walkableMask
+            );
 
-                Debug.DrawLine(
-                        transform.position - Vector3.down * 0.1f,
-                        transform.position - Vector3.down * 0.1f + Vector3.down * 1f,
-                        Color.yellow,
-                        Time.deltaTime);
+            if (hits.Length > 0) {
+                int topCollider = 0;
+                for (int i = 0; i < hits.Length; i++) {
+                    if (hits[topCollider].collider.bounds.max.y < hits[i].collider.bounds.max.y)
+                        topCollider = i;
+                }
+                if (hits[topCollider].distance > 1f) {
+                    targetFallHeight = transform.position.y - hits[topCollider].distance + 0.5f;
+                    falling = true;
+                }
+            } else {
+                targetFallHeight = -Mathf.Infinity;
+                falling = true;
             }
         }
 
@@ -118,9 +158,15 @@ public class PlayerMovement : MonoBehaviour
                 Time.deltaTime);
 
         // Handle player input
+        // Also handle moving up 1 level
+
         if (Input.GetKeyDown(KeyCode.W)) {
             if (CanMove(Vector3.forward)) {
                 targetPosition = transform.position + cameraRotator.transform.forward;
+                startPosition = transform.position;
+                moving = true;
+            } else if (CanMoveUp(Vector3.forward)) {
+                targetPosition = transform.position + cameraRotator.transform.forward + Vector3.up;
                 startPosition = transform.position;
                 moving = true;
             }
@@ -129,10 +175,18 @@ public class PlayerMovement : MonoBehaviour
                 targetPosition = transform.position - cameraRotator.transform.forward;
                 startPosition = transform.position;
                 moving = true;
+            } else if (CanMoveUp(Vector3.back)) {
+                targetPosition = transform.position - cameraRotator.transform.forward + Vector3.up;
+                startPosition = transform.position;
+                moving = true;
             }
         } else if (Input.GetKeyDown(KeyCode.A)) {
             if (CanMove(Vector3.left)) {
                 targetPosition = transform.position - cameraRotator.transform.right;
+                startPosition = transform.position;
+                moving = true;
+            } else if (CanMoveUp(Vector3.left)) {
+                targetPosition = transform.position - cameraRotator.transform.right + Vector3.up;
                 startPosition = transform.position;
                 moving = true;
             }
@@ -141,12 +195,13 @@ public class PlayerMovement : MonoBehaviour
                 targetPosition = transform.position + cameraRotator.transform.right;
                 startPosition = transform.position;
                 moving = true;
+            } else if (CanMoveUp(Vector3.right)) {
+                targetPosition = transform.position + cameraRotator.transform.right + Vector3.up;
+                startPosition = transform.position;
+                moving = true;
             }
         }
     }
-
-    bool falling;
-    float lastElevation;
 
     // Check if the player can move
 
@@ -160,5 +215,17 @@ public class PlayerMovement : MonoBehaviour
             if (Physics.Raycast(xAxisOriginB, direction, rayLength)) return false;
         }
         return true;
+    }
+
+    // Check if the player can step-up
+
+    bool CanMoveUp(Vector3 direction) {
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, Vector3.up, 1f, collidableMask))
+            return false;
+        if (Physics.Raycast(transform.position + Vector3.up * 1.5f, direction, 1f, collidableMask))
+            return false;
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, direction, 1f, walkableMask))
+            return true;
+        return false;
     }
 }
