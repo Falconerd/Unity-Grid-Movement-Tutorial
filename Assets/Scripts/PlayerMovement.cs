@@ -45,60 +45,6 @@ public class PlayerMovement : MonoBehaviour
 
     void Update() {
 
-        if (falling) {
-            if (transform.position.y <= targetFallHeight) {
-                float x = Mathf.Round(transform.position.x);
-                float y = Mathf.Round(targetFallHeight);
-                float z = Mathf.Round(transform.position.z);
-
-                transform.position = new Vector3(x, y, z);
-
-                falling = false;
-
-                return;
-            }
-
-            transform.position += Vector3.down * fallSpeed * Time.deltaTime;
-            return;
-        } else if (moving) {
-            if (Vector3.Distance(startPosition, transform.position) > 1f) {
-                float x = Mathf.Round(targetPosition.x);
-                float y = Mathf.Round(targetPosition.y);
-                float z = Mathf.Round(targetPosition.z);
-
-                transform.position = new Vector3(x, y, z);
-
-                moving = false;
-
-                return;
-            }
-
-            transform.position += (targetPosition - startPosition) * moveSpeed * Time.deltaTime;
-            return;
-        } else {
-            RaycastHit[] hits = Physics.RaycastAll(
-                    transform.position + Vector3.up * 0.5f,
-                    Vector3.down,
-                    maxFallCastDistance,
-                    walkableMask
-            );
-
-            if (hits.Length > 0) {
-                int topCollider = 0;
-                for (int i = 0; i < hits.Length; i++) {
-                    if (hits[topCollider].collider.bounds.max.y < hits[i].collider.bounds.max.y)
-                        topCollider = i;
-                }
-                if (hits[topCollider].distance > 1f) {
-                    targetFallHeight = transform.position.y - hits[topCollider].distance + 0.5f;
-                    falling = true;
-                }
-            } else {
-                targetFallHeight = -Mathf.Infinity;
-                falling = true;
-            }
-        }
-
         // Set the ray positions every frame
 
         yOffset = transform.position + Vector3.up * rayOffsetY;
@@ -156,6 +102,60 @@ public class PlayerMovement : MonoBehaviour
                 xAxisOriginB + Vector3.right * rayLength,
                 Color.red,
                 Time.deltaTime);
+
+        if (falling) {
+            if (transform.position.y <= targetFallHeight) {
+                float x = Mathf.Round(transform.position.x);
+                float y = Mathf.Round(targetFallHeight);
+                float z = Mathf.Round(transform.position.z);
+
+                transform.position = new Vector3(x, y, z);
+
+                falling = false;
+
+                return;
+            }
+
+            transform.position += Vector3.down * fallSpeed * Time.deltaTime;
+            return;
+        } else if (moving) {
+            if (Vector3.Distance(startPosition, transform.position) > 1f) {
+                float x = Mathf.Round(targetPosition.x);
+                float y = Mathf.Round(targetPosition.y);
+                float z = Mathf.Round(targetPosition.z);
+
+                transform.position = new Vector3(x, y, z);
+
+                moving = false;
+
+                return;
+            }
+
+            transform.position += (targetPosition - startPosition) * moveSpeed * Time.deltaTime;
+            return;
+        } else {
+            RaycastHit[] hits = Physics.RaycastAll(
+                    transform.position + Vector3.up * 0.5f,
+                    Vector3.down,
+                    maxFallCastDistance,
+                    walkableMask
+            );
+
+            if (hits.Length > 0) {
+                int topCollider = 0;
+                for (int i = 0; i < hits.Length; i++) {
+                    if (hits[topCollider].collider.bounds.max.y < hits[i].collider.bounds.max.y)
+                        topCollider = i;
+                }
+                if (hits[topCollider].distance > 1f) {
+                    targetFallHeight = transform.position.y - hits[topCollider].distance + 0.5f;
+                    falling = true;
+                }
+            } else {
+                targetFallHeight = -Mathf.Infinity;
+                falling = true;
+            }
+        }
 
         // Handle player input
         // Also handle moving up 1 level
@@ -227,5 +227,20 @@ public class PlayerMovement : MonoBehaviour
         if (Physics.Raycast(transform.position + Vector3.up * 0.5f, direction, 1f, walkableMask))
             return true;
         return false;
+    }
+
+    void OnCollisionEnter(Collision other) {
+        if (falling && (1 << other.gameObject.layer & walkableMask) == 0) {
+            // Find a nearby vacant square to push us on to
+            Vector3 direction = Vector3.zero;
+            Vector3[] directions = { Vector3.forward, Vector3.right, Vector3.back, Vector3.left };
+            for (int i = 0; i < 4; i++) {
+                if (Physics.OverlapSphere(transform.position + directions[i], 0.1f).Length == 0) {
+                    direction = directions[i];
+                    break;
+                }
+            }
+            transform.position += direction;
+        }
     }
 }
